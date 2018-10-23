@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<beans 
+xmlns="http://www.springframework.org/schema/beans" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:context="http://www.springframework.org/schema/context" 
+xmlns:aop="http://www.springframework.org/schema/aop" 
+xmlns:tx="http://www.springframework.org/schema/tx" 
+xsi:schemaLocation="http://www.springframework.org/schema/beans  
+http://www.springframework.org/schema/beans/spring-beans.xsd  
+http://www.springframework.org/schema/context  
+http://www.springframework.org/schema/context/spring-context.xsd 
+http://www.springframework.org/schema/aop  
+http://www.springframework.org/schema/aop/spring-aop.xsd 
+http://www.springframework.org/schema/tx 
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/mvc 
+http://www.springframework.org/schema/mvc/spring-mvc.xsd  ">
+       <mvc:annotation-driven/>
+        <context:component-scan base-package="com.scce.action"></context:component-scan>
+       <context:component-scan base-package="com.scce.Service"></context:component-scan>
+<!--        注入数据校验 -->
+       <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+       </bean>
+       
+       <bean id="datasorce" class="org.apache.commons.dbcp.BasicDataSource">
+       <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"></property>
+       <property name="url" value="jdbc:sqlserver://192.168.18.130:1433;databaseName=login"></property>
+       <property name="username" value="sa"></property>
+       <property name="password" value="123456"></property>
+       </bean>
+       
+       <bean id="sessionsqlFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+       <property name="configLocation" value="classpath:sqlMapConfig.xml"></property>
+       <property name="dataSource" ref="datasorce"></property>
+       <property name="typeHandlersPackage" value="com.scce.util.DateTypeTranf"></property>     
+       
+       </bean>
+       <!--添加对personMapper的配置信息  -->
+       <bean id="personMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+       <property name="mapperInterface" value="com.scce.dao.PersonMapper"></property>
+       <property name="sqlSessionFactory"  ref="sessionsqlFactory"></property>
+       </bean>
+ 
+       <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+       <property name="sqlSessionFactoryBeanName" value="sessionsqlFactory"></property>
+       <property name="basePackage" value="com.scce.dao.PersonMapper"></property>
+       </bean>
+       <!-- 添加视图层对jstl标签库的支持 -->
+       <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+       <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
+       
+       <property name="order" value="10"> </property>
+     <!--   <property name="prefix" value="/WebRoot/"></property> -->
+     <!--   <property name="suffix" value=".jsp"></property> -->
+       </bean>
+       <!--spring申请式事物-->
+ <!--    <bean  id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+       <property name="sessionFactory" ref="sessionsqlFactory"></property>      
+   </bean> -->
+     
+ <!--     <tx:annotation-driven transaction-manager="transactionManager"/>   -->
+ <!-- 当我们添加这一段代码的时候，需要去到我们的service，给我们的ServiceImpl添加注解@Transaction：  即@Transactional(readOnly=true) 中间未@service @Scope("prototype")-->
+     <!-- 
+    配置事务增强处理，指定事务管理器 
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" />
+            <tx:method name="del*" propagation="REQUIRED" />
+            <tx:method name="mod*" propagation="REQUIRED" />
+            必须要配置开启事务，不然getCurrentSession()会获取不到
+            <tx:method name="*" propagation="REQUIRED" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        配置一个切入点，匹配fruit.dao下所有类执行的方法
+        <aop:pointcut id="interceptorPointCuts" expression="execution(* fruit.dao.*.*(..))" />
+        指定在poincut切入点应用txAdvice事务增强处理
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="interceptorPointCuts" />
+    </aop:config>  -->
+     
+       
+       </beans>
